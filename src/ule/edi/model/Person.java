@@ -50,8 +50,15 @@ public class Person {
 		// TODO Auto-generated method stub
 		// Dos personas son iguales si son iguales sus nifs
 
+		if(this == obj){
+			return true;
+		}
+		if(obj == null || getClass() != obj.getClass()){
+			return false;
+		}
+		Person person = (Person) obj;
     	
-		return false;
+		return nif.equals(person.nif);
 	
 	}
 	

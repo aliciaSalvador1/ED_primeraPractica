@@ -87,14 +87,30 @@ public int getNumberOfSoldSeats() {
 public int getNumberOfNormalSaleSeats() {
 	// TODO Auto-generated method stub
 
-	return 0;
+	int ventaNormal = 0; 
+
+	for(int i = 0; i < nSeats; i++){
+
+		if(seats[i]!=null && !seats[i].getAdvanceSale()){
+			ventaNormal++;
+		}
+	}s
+	return ventaNormal;
 }
 
 
 @Override
 public int getNumberOfAdvanceSaleSeats() {
 	// TODO Auto-generated method stub
-	return 0;
+
+	int ventaRebajada = 0;
+
+	for (int i = 0; i < nSeats; i++){
+		if(seats[i]!=null && seats[i].getAdvanceSale()){
+			ventaRebajada ++;
+		}
+	}
+	return ventaRebajada;
 }
 
 
@@ -133,8 +149,18 @@ public Seat getSeat(int pos) {
 @Override
 public Person refundSeat(int pos) {
 	// TODO Auto-generated method stub
-	
-	return null;
+
+	if(pos<= 0 || pos > nSeats || seats[pos -1] == null ){
+		return null;
+	}
+
+	Person billeteDevuelto = seats[pos -1].getHolder();
+
+	seats[pos -1] = null;
+		
+	//Borrar de la lista si es adulto o niño 
+
+	return billeteDevuelto;
 }
 
 
@@ -164,6 +190,13 @@ private boolean isAdult(int age) {
 public List<Integer> getAvailableSeatsList() {
 	// TODO Auto-generated method stub
 	List<Integer> lista=new ArrayList<Integer>(nSeats);
+
+	for(int i = 0; i < nSeats; i++){
+
+		if(seats[i]==null){
+			lista.add(i+1);
+		}
+	}
 	
 	
 	return lista;
@@ -174,7 +207,12 @@ public List<Integer> getAvailableSeatsList() {
 public List<Integer> getAdvanceSaleSeatsList() {
 	// TODO Auto-generated method stub
 	List<Integer> lista=new ArrayList<Integer>(nSeats);
-	
+
+	for (int i = 0; i < nSeats; i++){
+		if(seats[i]!= null && seats[i].getAdvanceSale()){
+			lista.add(i+1); //Se le suma uno porque si no no es el correspondiente numero de asiento
+		}
+	}	
 	
 	return lista;
 }
@@ -209,11 +247,15 @@ public int getMaxNumberConsecutiveSeats() {
 public boolean isAdvanceSale(Person p) {
 	// TODO Auto-generated method stub
 	
-	for(int i = 0; i < nSeats; i++ ){
-		
-	}
+	boolean rebaja = false;
 
-	return false;
+	if(p != null){
+		int posicion= getPosPerson(p.getNif());
+		if(posicion != -1 && seats[posicion -1].getAdvanceSale()){
+			rebaja = true;
+		}
+	}
+	return rebaja;
 }
 
 
@@ -227,24 +269,56 @@ public Date getTravelDate() {
 @Override
 public boolean sellSeatPos(int pos, String nif, String name, int edad, boolean isAdvanceSale) {
 	// TODO Auto-generated method stub
+
+	boolean venta = true;
 	
+	if( pos <=0 || pos > nSeats || seats[pos -1] != null){
+		venta = false;
+	}
+
+	if(nif == null || nif.isEmpty()){
+		venta = false;
+	}
+
+	if(isAdvanceSale){
+		price = DEFAULT_PRICE - DEFAULT_DISCOUNT;
+	}
+	else{
+		price = DEFAULT_PRICE;
+	}
+
+	if(venta){
+		Person holder = new Person(nif, name, edad);
+		Seat nuevoSitio = new Seat(isAdvanceSale, holder);
+		seats[pos -1] = nuevoSitio;
+		}
 
 
-	return false;
+	return venta;
 }
 
-
+//PREGUNTAR EN CLASE
 @Override
 public int getNumberOfChildren() {
 	// TODO Auto-generated method stub
+
+	int numeroNiños = 0;
+
+	for (int i = 0; i < nSeats; i++){
+		if(isChildren(int) == true){
+			numeroNiños++;
+		}
+	}	
+
 	
-	return 0;
+	return 	numeroNiños;
 }
 
-
+//PREGUNTAR EN CLASE 
 @Override
 public int getNumberOfAdults() {
 	// TODO Auto-generated method stub
+
 	
 	return 0;
 }
@@ -254,15 +328,33 @@ public int getNumberOfAdults() {
 @Override
 public Double getCollectionTravel() {
 	// TODO Auto-generated method stub
+	double dineroTotal = 0;
+
+	for(int i = 0; i < nSeats; i++){
+		if(seats[i] !=null){
+				dineroTotal += getSeatPrice(seats[i]);
+		}
+	}
 	
-	return 0.0;
+	return dineroTotal;
 }
 
 
 @Override
 public int getPosPerson(String nif) {
 	// TODO Auto-generated method stub
-	return 0;	
+
+	int posicion = -1;
+
+	for(int i= 0; i< nSeats; i++){
+		
+		if(seats[i] != null && seats[i].getHolder() != null&& seats[i].getHolder().getNif().equals(nif)){
+			posicion = i+1;
+			break; //Para salir del bucle
+		}
+	}
+
+	return posicion;	
 }
 
 
@@ -272,7 +364,7 @@ public int sellSeatFrontPos(String nif, String name, int edad, boolean isAdvance
 
 	for(int i = 0; i < nSeats; i++){
 
-		if(seats[i]!=null){
+		if(seats[i]==null){
 			return i;
 		}
 	}
@@ -284,7 +376,14 @@ public int sellSeatFrontPos(String nif, String name, int edad, boolean isAdvance
 @Override
 public int sellSeatRearPos(String nif, String name, int edad, boolean isAdvanceSale) {
 	// TODO Auto-generated method stub
-	return 0;
+	for(int i = seats.length; i>=0; i-- ){
+
+		if(seats[i]==null){
+			return i;
+		}
+	}
+
+	return -1;
 }
 
 
@@ -293,7 +392,16 @@ public int sellSeatRearPos(String nif, String name, int edad, boolean isAdvanceS
 @Override
 public Double getSeatPrice(Seat seat) {
 	// TODO Auto-generated method stub
-	return 0.0;
+
+	double precio = 0;
+
+	if(seat != null && seat.getAdvanceSale()){
+		precio = DEFAULT_PRICE - DEFAULT_DISCOUNT;
+	}
+	else if(seat != null){
+		precio = DEFAULT_PRICE;
+	}
+	return precio;
 }
 
 
