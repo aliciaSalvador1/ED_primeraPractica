@@ -21,6 +21,9 @@ public class TravelArrayImpl implements Travel {
    	
 	private Seat[] seats;
 
+	private int numAdultos;
+	private int numNiños;
+
 	
 		
 	
@@ -94,7 +97,7 @@ public int getNumberOfNormalSaleSeats() {
 		if(seats[i]!=null && !seats[i].getAdvanceSale()){
 			ventaNormal++;
 		}
-	}s
+	}
 	return ventaNormal;
 }
 
@@ -158,7 +161,15 @@ public Person refundSeat(int pos) {
 
 	seats[pos -1] = null;
 		
-	//Borrar de la lista si es adulto o niño 
+	if(billeteDevuelto != null){
+		int años = billeteDevuelto.getAge();
+		if(isChildren(años)){
+			numNiños--;
+		}
+		else if(isAdult(años)){
+			numAdultos--;
+		}
+	}
 
 	return billeteDevuelto;
 }
@@ -177,12 +188,12 @@ private boolean isChildren(int age) {
 
 private boolean isAdult(int age) {
 	// TODO Auto-generated method stub
-
-	if(age > CHILDREN_EXMAX_AGE){
-		return true;
+	boolean iAdult=false;
+	if(age >= CHILDREN_EXMAX_AGE){
+		iAdult=true;
 	}
 
-	return false;
+	return iAdult;
 }
 
 
@@ -270,57 +281,39 @@ public Date getTravelDate() {
 public boolean sellSeatPos(int pos, String nif, String name, int edad, boolean isAdvanceSale) {
 	// TODO Auto-generated method stub
 
-	boolean venta = true;
-	
-	if( pos <=0 || pos > nSeats || seats[pos -1] != null){
-		venta = false;
+	if(pos<= 0 || pos >  nSeats || seats[pos -1] != null || nif == null || nif.isEmpty()){
+		return false;
 	}
 
-	if(nif == null || nif.isEmpty()){
-		venta = false;
+	double seatPrice = isAdvanceSale ? DEFAULT_PRICE - DEFAULT_DISCOUNT : DEFAULT_PRICE;
+
+	Person holder = new Person(nif, name, edad);
+	Seat nuevoSitio = new Seat(isAdvanceSale, holder);
+
+	seats[pos -1] = nuevoSitio;
+
+	if(isChildren(edad)){
+		numNiños++;
+	}
+	else if(isAdult(edad)){
+		numAdultos++;
 	}
 
-	if(isAdvanceSale){
-		price = DEFAULT_PRICE - DEFAULT_DISCOUNT;
-	}
-	else{
-		price = DEFAULT_PRICE;
-	}
-
-	if(venta){
-		Person holder = new Person(nif, name, edad);
-		Seat nuevoSitio = new Seat(isAdvanceSale, holder);
-		seats[pos -1] = nuevoSitio;
-		}
-
-
-	return venta;
+	return true;
 }
 
 //PREGUNTAR EN CLASE
 @Override
 public int getNumberOfChildren() {
 	// TODO Auto-generated method stub
-
-	int numeroNiños = 0;
-
-	for (int i = 0; i < nSeats; i++){
-		if(isChildren(int) == true){
-			numeroNiños++;
-		}
-	}	
-
-	
-	return 	numeroNiños;
+	return 	numNiños;
 }
 
 //PREGUNTAR EN CLASE 
 @Override
 public int getNumberOfAdults() {
 	// TODO Auto-generated method stub
-
-	
-	return 0;
+	return numAdultos;
 }
 
 
