@@ -46,9 +46,6 @@ public class Person {
 	
     @Override
 	public boolean equals(Object obj) {
-	
-		// TODO Auto-generated method stub
-		// Dos personas son iguales si son iguales sus nifs
 
 		if(this == obj){
 			return true;

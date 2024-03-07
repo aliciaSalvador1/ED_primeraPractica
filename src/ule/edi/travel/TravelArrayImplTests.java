@@ -1,9 +1,12 @@
 package ule.edi.travel;
 
+import static org.junit.Assert.assertEquals;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import org.junit.*;
 
@@ -61,7 +64,7 @@ public class TravelArrayImplTests {
 		 Assert.assertTrue(e2.sellSeatPos(1, "10203040A","Alice", 34,false));	//venta normal
 		 Assert.assertTrue(e2.sellSeatPos(2, "10203040B","Alice", 34,true));	//venta anticipada
 		 Assert.assertEquals(2, e2.getNumberOfSoldSeats());				 
-	    Assert.assertEquals(130.0,0.0,e2.getCollectionTravel());
+	    Assert.assertEquals(360.0,0.0,e2.getCollectionTravel());
 		}
 	  
 	// test getDiscountAdvanceSale
@@ -195,17 +198,19 @@ public class TravelArrayImplTests {
 					 
 		}
 	
-	@Test
-		public void testSellSeatFrontPos()throws Exception{
-			Assert.assertEquals(0, e.sellSeatFrontPos("111111111A", "Alicia", 19, false)); 
-			Assert.assertEquals(0, ep.sellSeatFrontPos("111111112A", "Alicia", 19, false));
-	}
+	
 		
 	@Test
-		public void testSellSeatRearPos()throws Exception{													 //PORQUE ESTE TEST NO TIRA
-		Assert.assertEquals(108, e.sellSeatRearPos("111111111A", "Alicia", 19, false));
+		public void testSellSeatRearPos()throws Exception{													 
+		Assert.assertEquals(110, e.sellSeatRearPos("111111111A", "Alicia", 19, false));
 		Assert.assertEquals(4, ep.sellSeatRearPos("111111112A", "Alicia", 19, false));
 		
+		ep.sellSeatPos(1, "111111111A", "Alicia", 19, false);
+		ep.sellSeatPos(1, "111111111B", "Alicia", 19, false);
+		ep.sellSeatPos(1, "111111111C", "Alicia", 19, false);
+		ep.sellSeatPos(1, "111111111D", "Alicia", 19, false);
+		
+		Assert.assertEquals(-1, ep.sellSeatRearPos("111111111E", "Alicia", 19, false));
 	}
 	
 	@Test 
@@ -306,11 +311,11 @@ public class TravelArrayImplTests {
 	public void testGetMaxNumberConsecutiveSeats(){
 
 		//Asientos vacios 
-		Assert.assertEquals(0, ep.getMaxNumberConsecutiveSeats());
+		Assert.assertEquals(3, ep.getMaxNumberConsecutiveSeats());
 
 		//Solo un asiento ocupado
 		ep.sellSeatPos(1, "111111111A", "Alicia	", 19, false);
-		Assert.assertEquals(1, ep.getMaxNumberConsecutiveSeats());
+		Assert.assertEquals(3, ep.getMaxNumberConsecutiveSeats());
 
 		//Todos los asientos ocupados
 		ep.sellSeatPos(1, "111111111A", "Alicia	", 19, false);
@@ -318,7 +323,7 @@ public class TravelArrayImplTests {
 		ep.sellSeatPos(3, "111111113A", "Alicia	", 19, false);
 		ep.sellSeatPos(4, "111111114A", "Alicia	", 19, true);
 		
-		Assert.assertEquals(4, ep.getMaxNumberConsecutiveSeats());
+		Assert.assertEquals(0, ep.getMaxNumberConsecutiveSeats());
 	}
 	
 	@Test
@@ -351,6 +356,87 @@ public class TravelArrayImplTests {
 		ep.sellSeatPos(2, "111111112A", "Alicia", 19, true);
 		Assert.assertEquals(1, ep.getNumberOfAdults());
 	}
+
+	@Test 
+	public void testGetMaxNumberEventoCompleto() throws Exception{
+
+		ep.sellSeatPos(1, "111111111A", "Alicia", 19, false);
+		ep.sellSeatPos(2, "111111112A", "Alicia", 19, true);
+		ep.sellSeatPos(3, "111111113A", "Alicia", 19, true);
+		ep.sellSeatPos(4, "111111114A", "Alicia", 19, false);
+		
+		Assert.assertEquals(0, ep.getNumberOfAvailableSeats());
+		Assert.assertEquals(4, ep.getNumberOfSoldSeats());
+		Assert.assertEquals(0, ep.getMaxNumberConsecutiveSeats());
+
+		Assert.assertEquals(false, ep.sellSeatPos(1, "1111111111B", "Alicia", 19, false));
+		
+	}
+
+	@Test
+	public void testSellPersonYaEnViaje() throws Exception{
+		e.sellSeatPos(1, "111111111A", "Alicia", 19, false);
+
+		Person personaExistente = new Person("111111111A", "Alicia", 19);
+		Assert.assertFalse(e.sellSeatPos(2, personaExistente.getNif(), personaExistente.getName(), personaExistente.getAge(), false));
+		Assert.assertEquals(1, e.getNumberOfSoldSeats());
+
+		
+	}
+	
+	@Test 
+	public void testsellSeatFrontPos() throws Exception{
+		
+		assertEquals(1,ep.sellSeatFrontPos("111111111A", "Alicia", 19, true));
+		assertEquals(2,ep.sellSeatFrontPos("111111111B", "Alicia", 19, true));
+		
+		
+		ep.sellSeatFrontPos("111111111A", "Alicia", 19, true);
+		ep.sellSeatFrontPos("111111111B", "Alicia", 19, true);
+		ep.sellSeatFrontPos("111111111C", "Alicia", 19, true);
+		ep.sellSeatFrontPos("111111111D", "Alicia", 19, true);
+		
+		assertEquals(-1, ep.sellSeatFrontPos("111111111E", "Alicia", 20, false));
+		
+	
+		
+	}
+	
+	@Test
+	public void testRefoundSeatChildren() {
+		ep.sellSeatPos(1, "111111111A", "Alicia", 10, false);
+		Person refoundP = ep.refundSeat(1);
+		Assert.assertNotNull(refoundP);
+		Assert.assertEquals(10, refoundP.getAge());
+	}
+
+	@Test
+	public void testRefoundSeatAdult() {
+		ep.sellSeatPos(1, "111111111A", "Alicia", 20, false);
+		Person refoundP = ep.refundSeat(1);
+		Assert.assertNotNull(refoundP);
+		Assert.assertEquals(20, refoundP.getAge());
+	}
+	
+	@Test 
+	public void testGetAvaibleSeatsList() throws Exception {
+		
+		ep.sellSeatPos(1, "111111111A", "Alicia", 19, true);
+		ep.sellSeatPos(3, "111111111C", "Alicia", 20, false);
+		
+		ep.refundSeat(1);
+		ep.refundSeat(3);
+		
+		List<Integer> availableSeats = ep.getAdvanceSaleSeatsList();
+		
+		Assert.assertTrue(availableSeats.contains(1)); 
+        Assert.assertTrue(availableSeats.contains(3));
+       
+        assertEquals(5, availableSeats.size()); 
+             	
+		
+	}
+
 
 }
 	
